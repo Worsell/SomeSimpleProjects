@@ -4,10 +4,9 @@
 
 #include <gtest/gtest.h>
 #include "../SimpleTree/SimpleSearchTree.h"
-#include "../../cmake-build-debug/googletest-src/googletest/include/gtest/gtest.h"
 
 TEST(SimpleSearchTree, SimepleInsertAndContainsTest) {
-auto *tree = new ::myLibrary::SimpleSearchTree<int>();
+    auto *tree = new ::myLibrary::SimpleSearchTree<int>();
     ASSERT_EQ(false, tree->contains(5));
     ASSERT_EQ(false, tree->contains(5));
     ASSERT_EQ(false, tree->contains(5));
@@ -25,6 +24,7 @@ auto *tree = new ::myLibrary::SimpleSearchTree<int>();
     ASSERT_EQ(true, tree->contains(4));
     tree->insert(11);
     ASSERT_EQ(false, tree->contains(5));
+    delete tree;
 }
 
 
@@ -55,6 +55,8 @@ TEST(SimpleSearchTree, SimpleAddAll) {
     ASSERT_EQ(true, trees->contains(4));
     ASSERT_EQ(true, trees->contains(5));
 
+    delete trees;
+    delete test;
 }
 
 TEST(SimpleSearchTree, SimpleRemove) {
@@ -65,12 +67,13 @@ TEST(SimpleSearchTree, SimpleRemove) {
     trees->insert(4);
     ASSERT_EQ(trees->remove(4), true);
     ASSERT_EQ(trees->remove(2), true);
+    delete trees;
 }
 
 TEST(SimpleSearchTree, SpeedOfManyInsert) {
     auto *test = new std::set<int>();
     auto *const trees = new ::myLibrary::SimpleSearchTree<int>();
-    const int size = 20000;
+    const int size = 2000;
 
     for (int i = 0; i<size; i++) {
         int r = rand() % size;
@@ -87,6 +90,8 @@ TEST(SimpleSearchTree, SpeedOfManyInsert) {
         ASSERT_EQ(true, trees->contains(i));
         //std::cout << i << std::endl;
     }
+    delete test;
+    delete trees;
 }
 
 
