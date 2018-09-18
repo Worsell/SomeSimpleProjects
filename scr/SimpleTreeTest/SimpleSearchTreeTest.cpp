@@ -24,15 +24,13 @@ TEST(SimpleSearchTree, SimepleInsertAndContainsTest) {
     ASSERT_EQ(true, tree->contains(4));
     tree->insert(11);
     ASSERT_EQ(false, tree->contains(5));
-    delete tree;
 }
 
 
 TEST(Node, SimpleRemoveNode) {
-    auto *d = new ::myLibrary::Node<int>(11, nullptr, nullptr, nullptr);
-    auto *d1 = new ::myLibrary::Node<int>(9, nullptr, nullptr, nullptr);
-    auto *d2 = new ::myLibrary::Node<int>(10, d1, nullptr, d);
-    delete d2;
+    //auto *d = new ::myLibrary::Node<int>(11, nullptr, nullptr, nullptr);
+    //auto *d1 = new ::myLibrary::Node<int>(9, nullptr, nullptr, nullptr);
+    //auto *d2 = new ::myLibrary::Node<int>(10, d1, nullptr, d);
 }
 
 
@@ -54,9 +52,6 @@ TEST(SimpleSearchTree, SimpleAddAll) {
     ASSERT_EQ(true, trees->contains(3));
     ASSERT_EQ(true, trees->contains(4));
     ASSERT_EQ(true, trees->contains(5));
-
-    delete trees;
-    delete test;
 }
 
 TEST(SimpleSearchTree, SimpleRemove) {
@@ -67,7 +62,6 @@ TEST(SimpleSearchTree, SimpleRemove) {
     trees->insert(4);
     ASSERT_EQ(trees->remove(4), true);
     ASSERT_EQ(trees->remove(2), true);
-    delete trees;
 }
 
 TEST(SimpleSearchTree, SpeedOfManyInsert) {
@@ -90,8 +84,6 @@ TEST(SimpleSearchTree, SpeedOfManyInsert) {
         ASSERT_EQ(true, trees->contains(i));
         //std::cout << i << std::endl;
     }
-    delete test;
-    delete trees;
 }
 
 

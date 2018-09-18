@@ -14,7 +14,7 @@ namespace myLibrary {
     public:
         Node() = default;
 
-        Node(T element, Node *left, Node *parent, Node *right) {
+        Node(T const element, std::shared_ptr<Node<T>> left, std::weak_ptr<Node<T>> parent, std::shared_ptr<Node<T>> right) {
             setLeft(left);
             setElement(element);
             setRight(right);
@@ -30,33 +30,33 @@ namespace myLibrary {
             element = elements;
         }
 
-        Node *getLeft() {
+        std::shared_ptr<Node<T>> getLeft() {
             return left;
         }
 
-        void setLeft(Node *lefts) {
+        void setLeft(std::shared_ptr<Node<T>> lefts) {
             if (lefts == nullptr)
                 left = nullptr;
             else
                 left = lefts;
         }
 
-        Node *getRight() {
+        std::shared_ptr<Node<T>> getRight() {
             return right;
         }
 
-        Node *getParent() {
+        std::weak_ptr<Node<T>> getParent() {
             return parent;
         }
 
-        void setParent(Node *parents) {
-            if (parents == nullptr)
-                parent = nullptr;
+        void setParent(std::weak_ptr<Node<T>> parents) {
+            if (parents.lock() == nullptr)
+                throw new std::invalid_argument("Null pointer exception");
             else
                 parent = parents;
         }
 
-        void setRight(Node *rights) {
+        void setRight(std::shared_ptr<Node<T>>rights) {
             if (rights == nullptr)
                 right = nullptr;
             else
@@ -64,19 +64,17 @@ namespace myLibrary {
         }
 
         virtual ~Node() {
-            delete left;
-            delete right;
             right = nullptr;
-            parent = nullptr;
             left = nullptr;
         }
 
 
     private:
+
         T element;
-        Node *parent = nullptr;
-        Node *left = nullptr;
-        Node *right = nullptr;
+        std::weak_ptr<Node<T>> parent = std::weak_ptr<Node<T>>();
+        std::shared_ptr<Node<T>> left = nullptr;
+        std::shared_ptr<Node<T>> right = nullptr;
     };
 }
 
