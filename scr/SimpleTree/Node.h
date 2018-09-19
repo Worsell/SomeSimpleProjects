@@ -50,10 +50,7 @@ namespace myLibrary {
         }
 
         void setParent(std::weak_ptr<Node<T>> parents) {
-            if (parents.lock() == nullptr)
-                throw new std::invalid_argument("Null pointer exception");
-            else
-                parent = parents;
+            parent = parents;
         }
 
         void setRight(std::shared_ptr<Node<T>>rights) {

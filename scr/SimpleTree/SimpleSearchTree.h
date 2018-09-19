@@ -24,25 +24,22 @@ namespace myLibrary {
         }
 
         virtual ~SimpleSearchTree() {
-
+            root = nullptr;
         }
 
         bool insert(T const element) {
             if (root == nullptr) {
-                auto a = std::make_shared<Node<T>>();
-                auto b = std::weak_ptr<Node<T>>();
-                auto c = std::make_shared<Node<T>>();
-                root = std::make_shared<Node<T>> (element, a, b, c);
+                root = std::make_shared<Node<T>> (element, nullptr, std::weak_ptr<Node<T>>(), nullptr);
                 size++;
                 return true;
             }
             std::shared_ptr<Node<T>> const previous = getParent(element, root);
             if (element < previous->getElement()) {
-                previous->setLeft(std::make_shared<Node<T>>(element, std::make_shared<Node<T>>(),
+                previous->setLeft(std::make_shared<Node<T>>(element, nullptr,
                         previous, std::make_shared<Node<T>>()));
             } else {
-                previous->setRight(std::make_shared<Node<T>>(element, std::make_shared<Node<T>>(),
-                        previous, std::make_shared<Node<T>>()));
+                previous->setRight(std::make_shared<Node<T>>(element, nullptr,
+                        previous, nullptr));
             }
             size++;
             return true;

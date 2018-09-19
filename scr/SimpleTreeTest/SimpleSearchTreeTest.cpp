@@ -24,6 +24,8 @@ TEST(SimpleSearchTree, SimepleInsertAndContainsTest) {
     ASSERT_EQ(true, tree->contains(4));
     tree->insert(11);
     ASSERT_EQ(false, tree->contains(5));
+
+    delete tree;
 }
 
 
@@ -52,6 +54,9 @@ TEST(SimpleSearchTree, SimpleAddAll) {
     ASSERT_EQ(true, trees->contains(3));
     ASSERT_EQ(true, trees->contains(4));
     ASSERT_EQ(true, trees->contains(5));
+
+    delete test;
+    delete trees;
 }
 
 TEST(SimpleSearchTree, SimpleRemove) {
@@ -62,6 +67,7 @@ TEST(SimpleSearchTree, SimpleRemove) {
     trees->insert(4);
     ASSERT_EQ(trees->remove(4), true);
     ASSERT_EQ(trees->remove(2), true);
+    delete trees;
 }
 
 TEST(SimpleSearchTree, SpeedOfManyInsert) {
@@ -80,10 +86,12 @@ TEST(SimpleSearchTree, SpeedOfManyInsert) {
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
     std::cout << "The time: " << elapsed_ms.count() << " ms\n";
     ASSERT_EQ(true, trees->isValideTree(trees->root));
-    for (std::__1::__tree_const_iterator<int, std::__1::__tree_node<int, void *> *, long>::value_type i: *test) {
-        ASSERT_EQ(true, trees->contains(i));
+    for (auto i = test->begin(); i != test->end(); i++) {
+        ASSERT_EQ(true, trees->contains(*i));
         //std::cout << i << std::endl;
     }
+    delete test;
+    delete trees;
 }
 
 
