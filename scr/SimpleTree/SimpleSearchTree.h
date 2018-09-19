@@ -87,45 +87,43 @@ namespace myLibrary {
         template<typename iter>
         bool insertAll(iter begin, iter end) {
             //std::sort(begin, end, std::less<T>());
-            auto tmp = std::make_shared<SimpleSearchTree<T>>();
+            auto tmp = SimpleSearchTree<T>();
             int b = 100;
             for (auto i = begin; i != end; i++) {
-                tmp->insert(*i);
-                if ((tmp->size != 0) && (tmp->size % b == 0)) {
+                tmp.insert(*i);
+                if ((tmp.size != 0) && (tmp.size % b == 0)) {
                     if (root == nullptr) {
-                        root = tmp->root;
+                        root = tmp.root;
 
                     } else {
-                        std::shared_ptr<Node<T>> const node = getParent(tmp->root->getElement(), root);
-                        if (node->getElement() > tmp->root->getElement()) {
-                            node->setLeft(tmp->root);
-                            tmp->root->setParent(node);
+                        std::shared_ptr<Node<T>> const node = getParent(tmp.root->getElement(), root);
+                        if (node->getElement() > tmp.root->getElement()) {
+                            node->setLeft(tmp.root);
+                            tmp.root->setParent(node);
                         } else {
-                            node->setRight(tmp->root);
-                            tmp->root->setParent(node);
+                            node->setRight(tmp.root);
+                            tmp.root->setParent(node);
                         }
                     }
-                    size += (tmp->size);
-                    tmp = nullptr;
-                    tmp = std::make_shared<SimpleSearchTree<T>>();
+                    size += (tmp.size);
+                    tmp = SimpleSearchTree<T>();
                 }
             }
             if (root == nullptr) {
-                root = tmp->root;
+                root = tmp.root;
             } else {
-                if (tmp->size != 0) {
-                    std::shared_ptr<Node<T>> const node = getParent(tmp->root->getElement(), root);
-                    if (node->getElement() > tmp->root->getElement()) {
-                        node->setLeft(tmp->root);
-                        tmp->root->setParent(node);
+                if (tmp.size != 0) {
+                    std::shared_ptr<Node<T>> const node = getParent(tmp.root->getElement(), root);
+                    if (node->getElement() > tmp.root->getElement()) {
+                        node->setLeft(tmp.root);
+                        tmp.root->setParent(node);
                     } else {
-                        node->setRight(tmp->root);
-                        tmp->root->setParent(node);
+                        node->setRight(tmp.root);
+                        tmp.root->setParent(node);
                     }
                 }
             }
-            size += (tmp->size);
-            tmp = nullptr;
+            size += (tmp.size);
             return true;
         }
 
