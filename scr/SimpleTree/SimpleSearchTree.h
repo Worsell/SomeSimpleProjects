@@ -87,7 +87,7 @@ namespace myLibrary {
         template<typename iter>
         bool insertAll(iter begin, iter end) {
             //std::sort(begin, end, std::less<T>());
-            SimpleSearchTree<T> *tmp = new SimpleSearchTree<T>();
+            auto tmp = std::make_shared<SimpleSearchTree<T>>();
             int b = 100;
             for (auto i = begin; i != end; i++) {
                 tmp->insert(*i);
@@ -107,7 +107,7 @@ namespace myLibrary {
                     }
                     size += (tmp->size);
                     tmp = nullptr;
-                    tmp = new SimpleSearchTree<T>();
+                    tmp = std::make_shared<SimpleSearchTree<T>>();
                 }
             }
             if (root == nullptr) {
