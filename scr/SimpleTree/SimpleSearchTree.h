@@ -10,6 +10,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <stack>
 
 namespace myLibrary {
 
@@ -20,7 +21,31 @@ namespace myLibrary {
         SimpleSearchTree() = default;
 
         explicit SimpleSearchTree(std::shared_ptr<Node<T>> root) : root(root) {
+            size++;
+        }
+        // Эффективно создаем сбалансированное(на будущее) древо по отсортированной последовательности
+        template <typename iter>
+        SimpleSearchTree(const iter begin, const iter end) {
+            if (begin <= end) {
+                int a = 0;
+                for (auto i = begin; i < end; i++) a++;
+                int b = a / 2;
+                iter midle = (begin + b);
+                root = std::make_shared<Node<T>>(*midle, nullptr, std::make_shared<Node<T>>(), nullptr);
+                if (begin <= (midle - 1 )) {
+                    auto l = SimpleSearchTree(begin, midle - 1);
+                    root->setLeft(l.root);
+                    if (l.root != nullptr)
+                        l.root->setParent(root);
+                }
 
+                if ((midle+ 1) <= end) {
+                    auto r = SimpleSearchTree(midle + 1, end);
+                    root->setRight(r.root);
+                    if (r.root != nullptr)
+                        r.root->setParent(root);
+                }
+            }
         }
 
         virtual ~SimpleSearchTree() {
@@ -36,7 +61,7 @@ namespace myLibrary {
             std::shared_ptr<Node<T>> const previous = getParent(element, root);
             if (element < previous->getElement()) {
                 previous->setLeft(std::make_shared<Node<T>>(element, nullptr,
-                        previous, std::make_shared<Node<T>>()));
+                        previous, nullptr));
             } else {
                 previous->setRight(std::make_shared<Node<T>>(element, nullptr,
                         previous, nullptr));
@@ -83,12 +108,12 @@ namespace myLibrary {
         // При добавлении балансировки это просто хаос
         // Прикольно сделать чтобы константа подбиралась динамический
         // только для отсортированных данных
-        // Ну тут нет утечек, вне зависимости от того, что показывает анализатор
+        // Ну это очень тупо для замеров производительности
         template<typename iter>
-        bool insertAll(iter begin, iter end) {
+        bool insertAllbad(iter begin, iter end) {
             //std::sort(begin, end, std::less<T>());
             auto tmp = SimpleSearchTree<T>();
-            int b = 100;
+            int b = 10;
             for (auto i = begin; i != end; i++) {
                 tmp.insert(*i);
                 if ((tmp.size != 0) && (tmp.size % b == 0)) {
@@ -127,8 +152,75 @@ namespace myLibrary {
             return true;
         }
 
+        template<typename iter>
+        bool insertAll1(const iter begin, const iter end) {
+            // Получаем из дерева линейную последовательность за линию но не эффективно
+            // эффективно - лень
+            std::shared_ptr<std::queue<std::shared_ptr<Node<T>>>> queue = std::make_shared<std::queue<std::shared_ptr<Node<T>>>>();
+            lndOrder(root, queue);
+            int a = queue->size();
+            iter b = begin;
+            std::vector<T> tmp = std::vector<T>();
+            while ((queue->size() > 0) && (b != end)){
+                if ((queue->front()->getElement() < *b)) {
+                    tmp.push_back(queue->front()->getElement());
+                    queue->pop();
+                }else {
+                    tmp.push_back(*b);
+                    b++;
+                }
+            }
+            while (queue->size() > 0) {
+                tmp.push_back(queue->front()->getElement());
+                queue->pop();
+            }
+            while (b != end) {
+                tmp.push_back(*b);
+                b++;
+            }
+            SimpleSearchTree<T> tree = SimpleSearchTree(tmp.begin(), tmp.end()-1);
+            root = tree.root;
+            return true;
+        }
 
-        template<typename r>
+        template<typename iter>
+        bool insertAll(const iter begin, const iter end) {
+            if (root == nullptr) {
+                ::std::shared_ptr<::myLibrary::SimpleSearchTree<T>> tmp = std::make_shared<SimpleSearchTree<T>>(begin, end);
+                root = tmp->root;
+            } else {
+                iter midle  = begin;
+                while ((*midle < root->getElement()) && (midle != end))
+                    midle++;
+                if ((root->getLeft() != nullptr) && (root->getRight() != nullptr)) {
+                    if (midle < end) {
+                        insertSubsequence(begin, midle-1, root->getLeft());
+                        insertSubsequence(midle, end, root->getRight());
+                    } else if (midle != begin) {
+                        insertSubsequence(begin, end, root->getLeft());
+                    } else {
+                        insertSubsequence(begin, end, root->getRight());
+
+                    }
+                }
+                else {
+                    if (root->getLeft() == nullptr) {
+                        ::std::shared_ptr<::myLibrary::SimpleSearchTree<T>> tmp = std::make_shared<SimpleSearchTree<T>>(begin, midle - 1);
+                        root->setLeft(tmp->root);
+                        tmp->root->setParent(root);
+                    }
+                    if (root->getRight() == nullptr) {
+                        ::std::shared_ptr<::myLibrary::SimpleSearchTree<T>> tmp = std::make_shared<SimpleSearchTree<T>>(midle, end);
+                        root->setRight(tmp->root);
+                        tmp->root->setParent(root);
+                    }
+                }
+            }
+            return true;
+        }
+
+
+            template<typename r>
         void inOrderLeft(std::function<r(T)> function) {
             if (root != nullptr) {
                 inOrder(root->getLeft());
@@ -147,6 +239,9 @@ namespace myLibrary {
             }
         }
 
+
+
+
         int getSize() const {
             return size;
         }
@@ -158,6 +253,38 @@ namespace myLibrary {
         std::shared_ptr<Node<T>> root = nullptr;
     private:
         int size = 0;
+        template <typename itera>
+        std::shared_ptr<Node<T>> const insertSubsequence(const itera begin, const itera end, std::shared_ptr<Node<T>> node) {
+            itera midle  = begin;
+            while ((*midle < node->getElement()) && (midle != end))
+                midle++;
+            if ((node->getLeft() != nullptr) && (node->getRight() != nullptr)) {
+                if (midle < end) {
+                    insertSubsequence(begin, midle-1, node->getLeft());
+                    insertSubsequence(midle, end, node->getRight());
+                } else if (midle != begin) {
+                    insertSubsequence(begin, end, node->getLeft());
+                } else {
+                    insertSubsequence(begin, end, node->getRight());
+
+                }
+            }
+            else {
+                if (node->getLeft() == nullptr) {
+                    ::std::shared_ptr<::myLibrary::SimpleSearchTree<T>> tmp = std::make_shared<SimpleSearchTree<T>>(begin, midle - 1);
+                    node->setLeft(tmp->root);
+                    if(tmp->root != nullptr)
+                        tmp->root->setParent(node);
+                }
+                if (node->getRight() == nullptr) {
+                    ::std::shared_ptr<::myLibrary::SimpleSearchTree<T>> tmp = std::make_shared<SimpleSearchTree<T>>(midle, end);
+                    node->setRight(tmp->root);
+                    if(tmp->root != nullptr)
+                        tmp->root->setParent(node);
+                }
+            }
+            return node;
+        }
 
         // тут возвращаем указатель на ноду по элементу или нулевой указатель если такой не существует
         std::shared_ptr<Node<T>> const getNode(T const iter, std::shared_ptr<Node<T>> const tmp) {
@@ -210,7 +337,7 @@ namespace myLibrary {
                 return getMaxNode(node->getRight());
             }
         }
-        // TODO реализовать
+        // TODO дебаг
         // следующий элемент при обходе древа итератором
         std::shared_ptr<Node<T>> const getNext(std::shared_ptr<Node<T>> const node) {
             if (node == nullptr) throw std::invalid_argument("Null pointer exception");
@@ -218,16 +345,17 @@ namespace myLibrary {
             if (node->getRight() != nullptr)
                 return getMinNode(node->getRight());
 
-            Node<T> tmp = node;
-            if (tmp.getParent() == nullptr) return nullptr;
-            while (tmp.getParent()->getLeft() != tmp) {
-                tmp = tmp.getParent();
+            std::shared_ptr<Node<T>> tmp = node;
+            if (tmp->getParent().lock() == nullptr) return nullptr;
+            while (tmp->getParent().lock()->getLeft() != tmp) {
+                tmp = tmp->getParent().lock();
+
             }
             return tmp;
         }
 
 
-        // TODO реализовать
+        // TODO дебаг
         // предыдущий элемент при обходе древа итератором
         std::shared_ptr<Node<T>> const getPrevious(std::shared_ptr<Node<T>> const node) {
             if (node == nullptr) throw std::invalid_argument("Null pointer exception");
@@ -235,10 +363,10 @@ namespace myLibrary {
             if (node->getLeft() != nullptr)
                 return getMaxNode(node->getLeft());
 
-            Node<T> tmp = node;
-            if (tmp.getParent() == nullptr) return nullptr;
-            while (tmp.getParent()->getRight() != tmp) {
-                tmp = tmp.getParent();
+            std::shared_ptr<Node<T>> tmp = node;
+            if (tmp->getParent().lock() == nullptr) return nullptr;
+            while (tmp->getParent().lock()->getRight() != tmp) {
+                tmp = tmp->getParent().lock();
             }
             return tmp;
 
@@ -288,7 +416,19 @@ namespace myLibrary {
             return true;
         }
 
+        void lndOrder(std::shared_ptr<Node<T>> node, std::shared_ptr<std::queue<std::shared_ptr<Node<T>>>> queue){
+            if(node != nullptr) {
+                lndOrder(node->getLeft(), queue);
+                queue->push(node);
+                lndOrder(node->getRight(), queue);
+            }
+
+        }
+
+
+
     public:
+        // Оно неоч корректно от слова совсем
         bool isValideTree(std::shared_ptr<Node<T>> const node) {
             if ((node->getLeft() == nullptr) && (node->getRight() == nullptr))
                 return true;
