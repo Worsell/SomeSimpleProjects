@@ -7,8 +7,15 @@ if (APPLE)
 endif (APPLE)
 
 
-set(test1_source SimpleSearchTreeTest.cpp)
-add_executable(maintest ${test1_source})
-target_link_libraries(maintest gtest gtest_main tree)
+set(BinaryTest_source SimpleSearchTreeTest.cpp)
+add_executable(BinaryTest ${BinaryTest_source})
+target_link_libraries(BinaryTest gtest gtest_main BinaryTree)
 
-add_test(NAME Test1 COMMAND maintest)
+add_test(NAME Test1 COMMAND BinaryTest)
+
+
+set(BTreeTests_Source BTreeTest.cpp)
+add_executable(BTreeTest ${BTreeTests_Source})
+target_link_libraries(BTreeTest gtest gtest_main BTree)
+
+add_test(NAME Test2 COMMAND BTreeTest)

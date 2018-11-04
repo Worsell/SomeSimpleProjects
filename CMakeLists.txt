@@ -46,9 +46,11 @@ enable_testing()
 include_directories(scr)
 include_directories(scr/SimpleTree)
 include_directories(scr/SimpleTreeTest)
+include_directories(scr/BPlusTree)
 
 add_subdirectory(scr/SimpleTree build/lib1)
 add_subdirectory(scr/SimpleTreeTest build/test)
+add_subdirectory(scr/BPlusTree build/test2)
 
 ## TESTS
 #add_executable(main main.cpp)

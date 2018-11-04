@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include "../SimpleTree/SimpleSearchTree.h"
+#include <SimpleSearchTree.h>
 
 TEST(SimpleSearchTree, SimepleInsertAndContainsTest) {
     auto *tree = new ::myLibrary::SimpleSearchTree<int>();
@@ -164,32 +164,6 @@ TEST(SimpleSearchTree, TestInsertAll) {
 
 
 
-    delete trees;
-}
-TEST(SimpleSearchTree, TestPair) {
-    auto *test = new std::vector<int>();
-
-    test->reserve(7);
-
-
-
-    auto trees = new ::myLibrary::SimpleSearchTree<int>();
-
-
-    ASSERT_EQ(true, trees->isValideTree(trees->root));
-
-
-    ASSERT_EQ(true, trees->contains(10));
-    ASSERT_EQ(true, trees->contains(5));
-    ASSERT_EQ(true, trees->contains(20));
-    ASSERT_EQ(true, trees->contains(15));
-    ASSERT_EQ(true, trees->contains(25));
-    ASSERT_EQ(true, trees->contains(40));
-
-
-
-
-    delete test;
     delete trees;
 }
 
