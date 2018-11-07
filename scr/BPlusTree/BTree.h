@@ -122,6 +122,7 @@ namespace tree {
         }
 
 
+
         // Разрезаем вектор на два новых и возвращаем ссылку на пару новых векторов
         // TODO Можно как-то низкоуровнево оптимизировать чтобы не насиловать память копированием
         std::pair<std::vector<Pair>, std::vector<Pair>>
@@ -167,74 +168,28 @@ namespace tree {
             if (node->getParent().lock() != nullptr)
                 t = node->getParent().lock()->getFirst();
 
-            //
-            //
-            //
-            // КОД ДЛЯ ОТЛАДКИ!
+            // Теоретический должно работать!
+            /*
+            if ((node->getData().size() < _width_ / 3) &&
+                (node->getLeft().lock() == nullptr) &&
+                (node->getRight.lock() == nullptr)) {
+                if (node->getData().size() == 0) {
+
+                    node->getParent().remove(f);
+                    repair(node->getParent().lock(), node);
+                }
+
+
+            } else
+        */
             if (((node->getData().size() < _width_ / 3) &&
                  (node->getLeft().lock() != nullptr) &&
                  (node->getLeft().lock()->getData().size() < _width_ / 3)) ||
                 ((node->getData().size() < _width_ / 3) &&
                  (node->getRight().lock() != nullptr) &&
                  (node->getRight().lock()->getData().size() < _width_ / 3))) {
-
-                main_ptr right = node->getRight().lock();
-                main_ptr left = node->getLeft().lock();
-                main_ptr parent = node->getParent().lock();
-
-                // Удаляем ссылку на эту ноду.
-                parent->remove(node->getFirst());
-
-                // TODO - проверка на то, можно ли объединять
-                // С какой будем объединять
-                if (left->getData().size() < right->getData().size()) {
-
-                    std::vector<Pair> &v = connect(left->getData(), node->getData());
-                    main_ptr n = std::make_shared<Node<T>>(std::move(v));
-                    n->setLeft(left->getLeft());
-                    if (left->getRight().lock() != nullptr)
-                    left->getRight().lock()->setRight(n);
-                    n->setRight(right);
-                    right->setLeft(n);
-
-                    // Не работает
-                    for (int i = 0; i < parent->getData().size() - 1; i++) {
-                        if (parent->getData().at(i + 1) > n->getLast()) {
-                            parent->add(std::make_pair(n->getLast().first, n));
-                        }
-                    }
-
-
-                } else {
-
-                    std::vector<Pair> &v = connect(left->getData(), node->getData());
-                    main_ptr n = std::make_shared<Node<T>>(std::move(v));
-                    n->setLeft(left);
-                    left->setRight(n);
-                    if (right->getRight().lock() != nullptr)
-                        n->setRight(right->getRight().lock());
-                    if (right->getRight().lock() != nullptr)
-                        right->getRight().lock()->setLeft(n);
-
-                    // Тоже не работает
-                    for (int i = 0; i < parent->getData().size() - 1; i++) {
-                        if (parent->getData().at(i + 1) > n->getData().at(n->getData().size())) {
-                            //parent->getData().insert(i)
-                            // parent.getData().insert(i+1, std::make_pair(n.getData().at(n.getData().size()), n));
-                        }
-                    }
-
-                }
-                repair(parent, t);
-                return;
-            }
-            // КОД ДЛЯ ОТЛАДКИ
-            //
-            //
-            //
-
-
-
+                decrease_size(node, t);
+            } else
 
             // Тут смотрим на то, требуется ли расширить древо
             // ОТЛАЖЕНО
@@ -242,19 +197,55 @@ namespace tree {
                 increase_size(node, t);
             }
         }
+
+        void decrease_size(main_ptr &node, Pair &t) {
+            main_ptr right = node->getRight().lock();
+            main_ptr left = node->getLeft().lock();
+            main_ptr parent = node->getParent().lock();
+
+            // Удаляем ссылку на эту ноду.
+            parent->remove(t);
+            Pair p;
+
+            // С какой будем объединять
+            if (left->getData().size() < right->getData().size()) {
+                    left->getParent().lock()->remove(left->getFirst());
+                    main_ptr n = get_new_node_decrease_size(left, node, t);
+                    n->setParent(parent);
+                    p = Pair(n->getFirst().first, n);
+                    parent->add(p);
+                    main_ptr m = left->getParent().lock();
+                    repair(m, left->getFirst());
+                } else {
+                    right->getParent().lock()->remove(right->getFirst());
+                    main_ptr n = get_new_node_decrease_size(node, right, t);
+                    n->setParent(parent);
+                    p = Pair(n->getFirst().first, n);
+                    parent->add(p);
+                    main_ptr m = right->getParent().lock();
+                    repair(m, right->getFirst());
+                }
+            repair(parent, t);
+        }
+
         // Принимаем две ноды, при этом максимальный в 1 ноде больше чем минимальный во второй
         // Склеиваем их в одну НОВУЮ ноду
         // Проставляем parent ссылки у их потомков ЕСЛИ ОНИ ЕСТЬ на НОВУЮ ноду
         // Новая нода заменяет старую на месте
-        void decrease_size(main_ptr &node1, main_ptr &node2, Pair &t) {
-            std::vector<Pair> &v = connect(node1->getData(), node2->getData());
+        main_ptr &get_new_node_decrease_size(main_ptr &node1, main_ptr &node2, Pair &t) {
+            std::vector<Pair> v = connect(node1->getData(), node2->getData());
             main_ptr n = std::make_shared<Node<T>>(std::move(v));
             n->setLeft(node1->getLeft());
-            if (node1->getRight().lock() != nullptr)
-                node1->getRight().lock()->setRight(n);
-            n->setRight();
-            node1->setLeft(n);
-
+            if (node1->getLeft().lock() != nullptr)
+                node1->getLeft().lock()->setRight(n);
+            n->setRight(node2->getRight());
+            if (node2->getRight().lock() != nullptr)
+                node1->getRight().lock()->setLeft(n);
+            for(Pair x : n->getData()) {
+                if (x.second != nullptr)
+                    x.second->setParent(n);
+            }
+            return n;
         }
 
         void increase_size(main_ptr &node, Pair &t) {
@@ -297,7 +288,7 @@ namespace tree {
                 // Загружаем данные в ноду
 
                 if (parent != nullptr) {
-                    parent->remove(node->getFirst());
+                    parent->remove(t);
                     Pair p = Pair(left_node->getFirst().first, left_node);
                     parent->add(p);
                     left_node->setParent(parent);
