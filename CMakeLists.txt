@@ -52,10 +52,11 @@ add_subdirectory(scr/SimpleTree build/lib1)
 add_subdirectory(scr/SimpleTreeTest build/test)
 add_subdirectory(scr/BPlusTree build/test2)
 
-## TESTS
-#add_executable(main main.cpp)
 
-#target_link_libraries(main ${SOURCE_LIB})
+## TESTS
+add_executable(main main.cpp)
+
+target_link_libraries(main gtest gtest_main BTree)
 
 # Now simply link against gtest or gtest_main as needed. Eg
 # add_executable(main main.cpp)

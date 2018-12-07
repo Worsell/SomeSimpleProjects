@@ -5,14 +5,57 @@
 #ifndef SIMPLETREE_SMARTBTREE_H
 #define SIMPLETREE_SMARTBTREE_H
 
-#include <BTree.h>
 #include <vector>
 
+template <class K=int, class V = std::string>
+struct SmartPair {
+    K first;
+    V second;
+    SmartPair(K key, V value) {
+        first = key;
+        second = value;
+    }
+    SmartPair() = default;
+
+};
+
+template <class K=int, class V=std::string>
+const bool operator < (const SmartPair<K, V> &p1, const SmartPair<K, V> &p2) {
+    return p1.first < p2.first;
+}
+
+template <class K, class V>
+const bool operator == (const SmartPair<K, V> &p1, const SmartPair<K, V> &p2) {
+    return p1.first == p2.first;
+}
+template <class K, class V>
+const bool operator <= (const SmartPair<K, V> &p1, const SmartPair<K, V> &p2) {
+    return (p1 < p2) || (p1 == p2);
+}
+
+template <class K, class V>
+const bool operator != (const SmartPair<K, V> &p1, const SmartPair<K, V> &p2) {
+    return !(p1 == p2);
+}
+
+template <class K, class V>
+const bool operator > (const SmartPair<K, V> &p1, const SmartPair<K, V> &p2) {
+    return !(p1 < p2) && (p1 != p2);
+}
+template <class K, class V>
+const bool operator >= (const SmartPair<K, V> &p1, const SmartPair<K, V> &p2) {
+    return (p1 > p2) || (p1 == p2);
+}
+
+#include <BTree.h>
 namespace tree {
+
+
 
     template<class K = int, class V = std::string>
     class SmartBTree {
-        using pair = std::pair<K, V>;
+        using pair = SmartPair<K, V>;
+
 
     public:
         SmartBTree() = delete;
@@ -31,12 +74,14 @@ namespace tree {
 
         // Добавляем элемент в древо
         // Возвращется true если при данном добавлении произошел сброс буфера
-        bool add(K &key, V &value) {
+        bool add(K key, V value) {
             if (isLazy()) {
-                tree.insert(std::make_pair<pair>(key,value));
+                pair p = SmartPair(key, value);
+                tree.insert(p);
                 return true;
             }
-            adding_elements.insert(std::make_pair<pair>(key, value));
+            pair p = SmartPair(key, value);
+            adding_elements.push_back(p);
             if (adding_elements.size() > _size_buffer_adding_) {
                 for (pair x : adding_elements)
                     tree.insert(x);
@@ -48,10 +93,10 @@ namespace tree {
         }
 
         // Удаляем элемент из древа по ключу
-        // Возвращается указатель на элемент если фактический произошло удаление или nullptr если его не было
-        bool remove(K &key) {
+        // Возвращается подтверждение - удалено или нет фактический
+        bool remove(K key) {
             if (isLazy()) {
-                tree.remove(std::make_pair<pair>(key, V()));
+                tree.remove(SmartPair(key, V()));
                 return true;
             }
             auto it = std::find_if(adding_elements.begin(), adding_elements.end(), [&](pair p1) { return(key == p1.first);});
@@ -59,11 +104,11 @@ namespace tree {
                 adding_elements.erase(it);
                 return false;
             }
-            removing_elements.push_back(std::make_pair<pair>(key, V()));
+            removing_elements.push_back(SmartPair(key, V()));
             if (removing_elements.size() > _size_buffer_removing_) {
                 for (pair x : removing_elements)
                     tree.remove(x);
-                adding_elements = std::vector<pair>();
+                adding_elements = std::vector<SmartPair<K, V>>();
                 adding_elements.reserve(_size_buffer_adding_);
                 return true;
             }
@@ -71,10 +116,14 @@ namespace tree {
         }
 
         // Поиск в древе по ключу возвращающий ссылку на значение при наличии элемента или nullptr если его нет
-        V *search(K &key) {
-            pair p = tree.get(std::make_pair<pair>(key, V()));
-            if (p.first == key)
-                return &p.second;
+        const V *search(K key) {
+            pair p1 = SmartPair(key, V());
+
+            const pair *p = tree.get(p1);
+            if (p == nullptr)
+                return nullptr;
+            if (p->first == key)
+                return &p->second;
             else
                 return nullptr;
         }
@@ -118,6 +167,7 @@ namespace tree {
         std::vector<pair> removing_elements;
 
         std::vector<pair> adding_elements;
+
     };
 }
 #endif //SIMPLETREE_SMARTBTREE_H

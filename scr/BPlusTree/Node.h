@@ -59,6 +59,10 @@ namespace tree {
             return true;
         }
 
+        bool isExist(pair &element) {
+            return std::find_if(data.begin(), data.end(), [&](pair p1) { return(element.first == p1.first);}) != data.end();
+        }
+
         bool remove(pair &element) {
             auto it = std::find_if(data.begin(), data.end(), [&](pair p1) { return(element.first == p1.first);});
             if(it != data.end()) {
@@ -67,7 +71,6 @@ namespace tree {
             }
             return false;
         }
-
 
         ptr_node_week getParent() {
             return parent;
